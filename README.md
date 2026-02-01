@@ -106,5 +106,5 @@ flutter build web
 - This repository is safe to clone publicly
 
 ### Status
-🚧 Active development
-Android-first, iOS support planned.
+- 🚧 Active development
+- Android-first, iOS support planned.

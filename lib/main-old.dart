@@ -1,6 +1,5 @@
-// ✅ Icebreaker main.dart (REORGANIZED FLOW)
-// Flow: Landing → Onboarding (2 pages) → Filters → Map
-// - Landing screen (Get Started) ✅
+// ✅ Icebreaker main.dart (FULL FIXED + UPGRADED VERSION)
+// Includes:
 // - Onboarding (2 pages) ✅
 // - Filters landing (Age + Gender) ✅
 // - Landing screen fade into map ✅
@@ -11,8 +10,8 @@
 // - Block button small in top-right of popup ✅
 // - Glass popup card ✅
 // - Chat modal (no emergency) ✅
-// - 3 action buttons fit on same line ✅
-// - Custom avatar markers (circular face + colored status ring; Me purple with white stroke) ✅
+// - FIX: 3 action buttons fit on same line ✅
+// - ✅ NEW: Custom avatar markers (circular face + colored status ring; Me purple with white stroke) ✅
 
 import 'dart:async';
 import 'dart:math';
@@ -40,100 +39,7 @@ class IcebreakerApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF7C3AED)),
         useMaterial3: true,
       ),
-      home: const LandingScreen(),
-    );
-  }
-}
-
-/* ============================================================
-   LANDING SCREEN (First screen - Get Started)
-   ============================================================ */
-class LandingScreen extends StatelessWidget {
-  const LandingScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF8F4EED), Color(0xFF6A84F7)],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 92,
-                    height: 92,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: const [
-                        BoxShadow(
-                          blurRadius: 28,
-                          color: Color(0x335730A9),
-                          offset: Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.ac_unit, color: Colors.white, size: 44),
-                  ),
-                  const SizedBox(height: 28),
-                  const Text(
-                    'Icebreaker',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 36,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Meet new people nearby.\nStart real conversations.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.5,
-                      height: 1.25,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 26),
-                  SizedBox(
-                    width: 220,
-                    height: 52,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF7C3AED),
-                        elevation: 6,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-                        );
-                      },
-                      child: const Text('Get Started'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      home: const OnboardingScreen(),
     );
   }
 }
@@ -494,15 +400,126 @@ class _FiltersScreenState extends State<FiltersScreen> {
 }
 
 /* ============================================================
-   ROOT (map only - no landing overlay)
+   ROOT (landing overlay + map)
    ============================================================ */
-class _Root extends StatelessWidget {
+class _Root extends StatefulWidget {
   final Filters filters;
   const _Root({required this.filters});
 
   @override
+  State<_Root> createState() => _RootState();
+}
+
+class _RootState extends State<_Root> {
+  bool started = false;
+  void _start() => setState(() => started = true);
+
+  @override
   Widget build(BuildContext context) {
-    return MapScreen(filters: filters);
+    return Stack(
+      children: [
+        MapScreen(filters: widget.filters),
+        AnimatedOpacity(
+          opacity: started ? 0 : 1,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOut,
+          child: IgnorePointer(
+            ignoring: started,
+            child: LandingScreen(onGetStarted: _start),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/* ============================================================
+   LANDING
+   ============================================================ */
+class LandingScreen extends StatelessWidget {
+  final VoidCallback onGetStarted;
+  const LandingScreen({super.key, required this.onGetStarted});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF8F4EED), Color(0xFF6A84F7)],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 26),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 92,
+                    height: 92,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: const [
+                        BoxShadow(
+                          blurRadius: 28,
+                          color: Color(0x335730A9),
+                          offset: Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.ac_unit, color: Colors.white, size: 44),
+                  ),
+                  const SizedBox(height: 28),
+                  const Text(
+                    'Icebreaker',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Meet new people nearby.\nStart real conversations.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16.5,
+                      height: 1.25,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 26),
+                  SizedBox(
+                    width: 220,
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF7C3AED),
+                        elevation: 6,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                      ),
+                      onPressed: onGetStarted,
+                      child: const Text('Get Started'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -853,7 +870,7 @@ class _MapScreenState extends State<MapScreen> {
         interests: ['Photography', 'Travel'],
         spark: 36,
         statusType: StatusType.shy,
-        bio: "I'm shy but friendly 🙂",
+        bio: "I’m shy but friendly 🙂",
         age: 22,
         gender: 'Female',
       ),
@@ -1114,7 +1131,7 @@ class _MapScreenState extends State<MapScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("${u.name} didn't respond yet…"),
+            content: Text("${u.name} didn’t respond yet…"),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -1153,7 +1170,7 @@ class _MapScreenState extends State<MapScreen> {
       barrierColor: Colors.black.withOpacity(0.14),
       builder: (_) => _ChatDialog(
         userName: u.name,
-        banner: bothOpen ? "You're both Open right now 👋" : null,
+        banner: bothOpen ? "You’re both Open right now 👋" : null,
         onClose: () {
           Navigator.of(context).pop();
           setState(() => _chatOpen = false);

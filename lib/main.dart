@@ -1,18 +1,18 @@
-// ✅ Icebreaker main.dart (REORGANIZED FLOW)
-// Flow: Landing → Onboarding (2 pages) → Filters → Map
-// - Landing screen (Get Started) ✅
-// - Onboarding (2 pages) ✅
-// - Filters landing (Age + Gender) ✅
-// - Landing screen fade into map ✅
-// - Google Map with greedy gestures ✅
-// - 60 simulated users (incl. 6 within ~800m of Rahul) ✅
-// - Wave 👋 unlock system (Chat + Directions unlock only if they wave back) ✅
-// - Emergency button ONLY on map ✅
-// - Block button small in top-right of popup ✅
-// - Glass popup card ✅
-// - Chat modal (no emergency) ✅
-// - 3 action buttons fit on same line ✅
-// - Custom avatar markers (circular face + colored status ring; Me purple with white stroke) ✅
+// âœ… Icebreaker main.dart (REORGANIZED FLOW)
+// Flow: Landing â†’ Onboarding (2 pages) â†’ Filters â†’ Map
+// - Landing screen (Get Started) âœ…
+// - Onboarding (2 pages) âœ…
+// - Filters landing (Age + Gender) âœ…
+// - Landing screen fade into map âœ…
+// - Google Map with greedy gestures âœ…
+// - 60 simulated users (incl. 6 within ~800m of Rahul) âœ…
+// - Wave 👋 unlock system (Chat + Directions unlock only if they wave back) âœ…
+// - Emergency button ONLY on map âœ…
+// - Block button small in top-right of popup âœ…
+// - Glass popup card âœ…
+// - Chat modal (no emergency) âœ…
+// - 3 action buttons fit on same line âœ…
+// - Custom avatar markers (circular face + colored status ring; Me purple with white stroke) âœ…
 
 import 'dart:async';
 import 'dart:math';
@@ -24,6 +24,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+// Crossed Paths Feature
+import 'utils/location_history/location_history.dart';
+import 'utils/location_history/crossed_paths_engine.dart';
+import 'utils/location_history/location_simulator.dart';
+import 'utils/location_history/crossed_paths_screen.dart';
+
 
 void main() => runApp(const IcebreakerApp());
 
@@ -197,7 +204,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       title: "Wave first, chat after",
                       text:
                       "Tap a person to see their vibe and interests. "
-                          "Wave 👋 — if they wave back, Chat & Directions unlock.",
+                          "Wave👋 — if they wave back, Chat & Directions unlock.",
                     ),
                   ],
                 ),
@@ -721,14 +728,32 @@ class _MapScreenState extends State<MapScreen> {
   final Map<int, bool> _waveSent = {};
   final Map<int, bool> _waveBack = {};
 
-  // ✅ Custom avatar marker factory
+  // âœ… Custom avatar marker factory
   final _AvatarMarkerFactory _avatarMarkers = _AvatarMarkerFactory();
+
+  // Crossed paths feature
+  late final List<LocationSample> _locationHistory;
+  late final CrossedPathsEngine _pathsEngine;
+  List<CrossedPath> _myCrossedPaths = [];
 
   @override
   void initState() {
     super.initState();
     _users = _buildUsers();
     _myStatus = _me.statusType;
+
+    // Initialize crossed paths feature
+    _pathsEngine = CrossedPathsEngine(
+      config: const CrossedPathsConfig(
+        proximityRadius: 15.0, // 15 meters
+        timeWindow: Duration(minutes: 5),
+      ),
+    );
+    _locationHistory = _generateSimulatedHistory();
+    _myCrossedPaths = _pathsEngine.detectCrossedPaths(
+      targetUserId: _me.id,
+      allLocationSamples: _locationHistory,
+    );
 
     // Build markers async (because custom marker bitmaps require async work)
     Future.microtask(() async {
@@ -763,7 +788,7 @@ class _MapScreenState extends State<MapScreen> {
       interests: ['AI', 'Clubbing', 'Tech'],
       spark: 75,
       statusType: StatusType.open,
-      bio: 'Let’s make new connections in Sydney!',
+      bio: 'Letâ€™s make new connections in Sydney!',
       age: 26,
       gender: 'Male',
       me: true,
@@ -820,7 +845,7 @@ class _MapScreenState extends State<MapScreen> {
         gender: 'Male',
       ),
 
-      // ✅ 6 EXTRA users within ~800m of Rahul
+      // âœ… 6 EXTRA users within ~800m of Rahul
       const IceUser(
         id: 5,
         name: 'Maya',
@@ -841,7 +866,7 @@ class _MapScreenState extends State<MapScreen> {
         interests: ['Tech', 'Comedy'],
         spark: 52,
         statusType: StatusType.curious,
-        bio: "New to the area — wave at me!",
+        bio: "New to the area 👋 wave at me!",
         age: 29,
         gender: 'Male',
       ),
@@ -940,6 +965,83 @@ class _MapScreenState extends State<MapScreen> {
     return base;
   }
 
+  List<LocationSample> _generateSimulatedHistory() {
+    final simulator = LocationHistorySimulator();
+    final now = DateTime.now();
+    final startTime = now.subtract(const Duration(days: 7)); // Last 7 days
+
+    // Create base locations for users
+    final baseLocations = _users.map((u) {
+      return UserBaseLocation(
+        userId: u.id,
+        lat: u.lat,
+        lng: u.lng,
+        movementRadius: 800.0, // 800m movement radius
+        activityLevel: u.me ? 0.9 : 0.3 + Random(u.id).nextDouble() * 0.5,
+      );
+    }).toList();
+
+    // Generate base history
+    final history = simulator.generateLocationHistory(
+      users: baseLocations,
+      startTime: startTime,
+      duration: const Duration(days: 7),
+      samplesPerHour: 12, // Every 5 minutes
+    );
+
+    // Inject some guaranteed crossings for demo
+    final crossings = [
+      // Sophie crossing with Rahul near Opera House
+      UserCrossingConfig(
+        userId1: 0, // Rahul
+        userId2: 1, // Sophie
+        lat: -33.8568,
+        lng: 151.2153,
+        timeOffset: Duration(days: 2, hours: 14),
+      ),
+      // Liam crossing with Rahul near Circular Quay
+      UserCrossingConfig(
+        userId1: 0,
+        userId2: 2, // Liam
+        lat: -33.8614,
+        lng: 151.2106,
+        timeOffset: Duration(days: 1, hours: 18, minutes: 30),
+      ),
+      // Ava crossing with Rahul near Darling Harbour
+      UserCrossingConfig(
+        userId1: 0,
+        userId2: 3, // Ava
+        lat: -33.8736,
+        lng: 151.2007,
+        timeOffset: Duration(days: 3, hours: 12),
+      ),
+      // Maya crossing with Rahul (one of the close ones)
+      UserCrossingConfig(
+        userId1: 0,
+        userId2: 5, // Maya
+        lat: -33.8679,
+        lng: 151.2131,
+        timeOffset: Duration(hours: 8),
+      ),
+      // Ethan crossing
+      UserCrossingConfig(
+        userId1: 0,
+        userId2: 6, // Ethan
+        lat: -33.8702,
+        lng: 151.2110,
+        timeOffset: Duration(hours: 5),
+      ),
+    ];
+
+    final crossingSamples = simulator.injectCrossings(
+      crossings: crossings,
+      baseTime: startTime,
+    );
+
+    return [...history, ...crossingSamples]
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+  }
+
   double _statusHue(StatusType t) {
     switch (t) {
       case StatusType.open:
@@ -953,7 +1055,7 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  // ✅ Build custom avatar markers
+  // âœ… Build custom avatar markers
   Future<void> _buildMarkers() async {
     _markers.clear();
 
@@ -1114,7 +1216,7 @@ class _MapScreenState extends State<MapScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("${u.name} didn't respond yet…"),
+            content: Text("${u.name} didn't respond yet..."),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -1308,6 +1410,37 @@ class _MapScreenState extends State<MapScreen> {
               top: 52,
               right: 14,
               child: _MyStatusButton(status: _myStatus, onTap: _showStatusSelector),
+            ),
+
+            // Crossed Paths button (below status button)
+            Positioned(
+              top: 110, // Below status button
+              right: 14,
+              child: _CrossedPathsButton(
+                count: _myCrossedPaths.isEmpty
+                    ? 0
+                    : _pathsEngine.groupByUser(_myCrossedPaths).length,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CrossedPathsScreen(
+                        crossedPaths: _myCrossedPaths,
+                        getUserById: (id) {
+                          try {
+                            return _users.firstWhere((u) => u.id == id);
+                          } catch (_) {
+                            return null;
+                          }
+                        },
+                        onUserTap: (user) {
+                          Navigator.of(context).pop();
+                          _setSelectedUser(user);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
 
             Positioned(
@@ -1657,7 +1790,7 @@ class _UserPopupCard extends StatelessWidget {
                 Text(distLabel(), style: const TextStyle(color: Color(0xFF888888), fontSize: 13)),
                 const SizedBox(height: 12),
 
-                // ✅ FIX: keep Wave / Chat / Directions on ONE line (shrink text if needed)
+                // âœ… FIX: keep Wave / Chat / Directions on ONE line (shrink text if needed)
                 Row(
                   children: [
                     if (canInteract)
@@ -1736,7 +1869,7 @@ class _UserPopupCard extends StatelessWidget {
                 if (canInteract && !chatUnlocked)
                   const Padding(
                     padding: EdgeInsets.only(top: 8),
-                    child: Text("Wave first — if they wave back, Chat & Directions unlock.",
+                    child: Text("Wave 👋 — if they wave back, Chat & Directions unlock..",
                         style: TextStyle(color: Color(0xFF6B7280), fontSize: 12.5)),
                   ),
               ],
@@ -1765,7 +1898,7 @@ class _ChatDialog extends StatefulWidget {
 class _ChatDialogState extends State<_ChatDialog> {
   final TextEditingController _controller = TextEditingController();
   final List<_Msg> _messages = <_Msg>[
-    const _Msg(fromMe: false, text: "Nice to meet you! 👋"),
+    const _Msg(fromMe: false, text: "Nice to meet you!👋"),
   ];
 
   void _send() {
@@ -1899,4 +2032,70 @@ class _Msg {
   final bool fromMe;
   final String text;
   const _Msg({required this.fromMe, required this.text});
+}
+
+/* ============================================================
+   CROSSED PATHS BUTTON
+   ============================================================ */
+class _CrossedPathsButton extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+
+  const _CrossedPathsButton({
+    required this.count,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF7C3AED).withOpacity(0.92),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 16,
+              color: Color(0x26000000),
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.route, color: Colors.white, size: 18),
+            const SizedBox(width: 6),
+            const Text(
+              'Paths',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: const TextStyle(
+                    color: Color(0xFF7C3AED),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }

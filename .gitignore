@@ -35,3 +35,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+#old files
+main-old-v1.dart
+main-old-v2.dart

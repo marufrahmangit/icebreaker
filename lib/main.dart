@@ -788,7 +788,7 @@ class _MapScreenState extends State<MapScreen> {
       interests: ['AI', 'Clubbing', 'Tech'],
       spark: 75,
       statusType: StatusType.open,
-      bio: "Let's make new connections in Sydney!",,
+      bio: "Let's make new connections in Sydney!",
       age: 26,
       gender: 'Male',
       me: true,

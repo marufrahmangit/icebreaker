@@ -5,7 +5,7 @@
 // - Filters landing (Age + Gender) âœ…
 // - Landing screen fade into map âœ…
 // - Google Map with greedy gestures âœ…
-// - 60 simulated users (incl. 6 within ~800m of Rahul) âœ…
+// - 60 simulated users (incl. 6 within ~800m of Username) âœ…
 // - Wave 👋 unlock system (Chat + Directions unlock only if they wave back) âœ…
 // - Emergency button ONLY on map âœ…
 // - Block button small in top-right of popup âœ…
@@ -782,13 +782,13 @@ class _MapScreenState extends State<MapScreen> {
   List<IceUser> _buildUsers() {
     const me = IceUser(
       id: 0,
-      name: 'Rahul (You)',
+      name: 'Username (You)',
       lat: -33.8688,
       lng: 151.2093,
       interests: ['AI', 'Clubbing', 'Tech'],
       spark: 75,
       statusType: StatusType.open,
-      bio: 'Letâ€™s make new connections in Sydney!',
+      bio: "Let's make new connections in Sydney!",,
       age: 26,
       gender: 'Male',
       me: true,
@@ -845,7 +845,7 @@ class _MapScreenState extends State<MapScreen> {
         gender: 'Male',
       ),
 
-      // âœ… 6 EXTRA users within ~800m of Rahul
+      // âœ… 6 EXTRA users within ~800m of Username
       const IceUser(
         id: 5,
         name: 'Maya',
@@ -991,15 +991,15 @@ class _MapScreenState extends State<MapScreen> {
 
     // Inject some guaranteed crossings for demo
     final crossings = [
-      // Sophie crossing with Rahul near Opera House
+      // Sophie crossing with Username near Opera House
       UserCrossingConfig(
-        userId1: 0, // Rahul
+        userId1: 0, // Username
         userId2: 1, // Sophie
         lat: -33.8568,
         lng: 151.2153,
         timeOffset: Duration(days: 2, hours: 14),
       ),
-      // Liam crossing with Rahul near Circular Quay
+      // Liam crossing with Username near Circular Quay
       UserCrossingConfig(
         userId1: 0,
         userId2: 2, // Liam
@@ -1007,7 +1007,7 @@ class _MapScreenState extends State<MapScreen> {
         lng: 151.2106,
         timeOffset: Duration(days: 1, hours: 18, minutes: 30),
       ),
-      // Ava crossing with Rahul near Darling Harbour
+      // Ava crossing with Username near Darling Harbour
       UserCrossingConfig(
         userId1: 0,
         userId2: 3, // Ava
@@ -1015,7 +1015,7 @@ class _MapScreenState extends State<MapScreen> {
         lng: 151.2007,
         timeOffset: Duration(days: 3, hours: 12),
       ),
-      // Maya crossing with Rahul (one of the close ones)
+      // Maya crossing with Username (one of the close ones)
       UserCrossingConfig(
         userId1: 0,
         userId2: 5, // Maya
@@ -1638,7 +1638,7 @@ class _LegendPill extends StatelessWidget {
           Row(mainAxisSize: MainAxisSize.min, children: [
             dot(const Color(0xFF7C3AED), me: true),
             const SizedBox(width: 6),
-            Text('Me (Rahul) • ${statusLabel(myStatus)}', style: t),
+            Text('Me (Username) • ${statusLabel(myStatus)}', style: t),
           ]),
           Row(mainAxisSize: MainAxisSize.min, children: [
             dot(const Color(0xFF10B981)),

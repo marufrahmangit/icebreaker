@@ -1,14 +1,14 @@
 import '../models/ice_user.dart';
 
 /// 60 simulated users based on the HTML prototypes, centered around Sydney.
-/// Marker color is derived from [statusType]. Rahul is the 'me' user.
+/// Marker color is derived from [statusType]. Username is the 'me' user.
 const myLat = -33.8688;
 const myLng = 151.2093;
 
 const List<IceUser> kMockUsers = [
   IceUser(
     id: 0,
-    name: 'Rahul (You)',
+    name: 'Username (You)',
     lat: myLat,
     lng: myLng,
     interests: ['AI', 'Clubbing', 'Tech'],

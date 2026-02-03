@@ -519,10 +519,8 @@ class _Root extends StatelessWidget {
 class IceUser {
   final int id;
   final String name;
-  final double lat; // Spoofed location (shown by default)
-  final double lng; // Spoofed location (shown by default)
-  final double realLat; // Actual location (shown only if they accept meet request)
-  final double realLng; // Actual location (shown only if they accept meet request)
+  final double lat;
+  final double lng;
   final List<String> interests;
   final int spark;
   final StatusType statusType;
@@ -531,17 +529,12 @@ class IceUser {
 
   final int age;
   final String gender;
-  
-  // For demo: pre-determined whether this user will accept meet requests
-  final bool willAcceptMeet;
 
   const IceUser({
     required this.id,
     required this.name,
     required this.lat,
     required this.lng,
-    required this.realLat,
-    required this.realLng,
     required this.interests,
     required this.spark,
     required this.statusType,
@@ -549,11 +542,9 @@ class IceUser {
     required this.age,
     required this.gender,
     this.me = false,
-    this.willAcceptMeet = true, // Default to true
   });
 
-  LatLng get pos => LatLng(lat, lng); // Returns spoofed location
-  LatLng get realPos => LatLng(realLat, realLng); // Returns actual location
+  LatLng get pos => LatLng(lat, lng);
 }
 
 enum StatusType { open, shy, curious, busy }
@@ -737,11 +728,7 @@ class _MapScreenState extends State<MapScreen> {
   final Map<int, bool> _waveSent = {};
   final Map<int, bool> _waveBack = {};
 
-  // Meet request system
-  final Map<int, bool> _meetRequestSent = {}; // Track if we sent meet request
-  final Map<int, bool> _locationShared = {}; // Track if they shared location (accepted)
-
-  // ✅ Custom avatar marker factory
+  // âœ… Custom avatar marker factory
   final _AvatarMarkerFactory _avatarMarkers = _AvatarMarkerFactory();
 
   // Crossed paths feature
@@ -777,24 +764,6 @@ class _MapScreenState extends State<MapScreen> {
 
   IceUser get _me => _users.firstWhere((u) => u.me);
 
-  // Helper to create spoofed location (100-200m offset)
-  Map<String, double> _createSpoofedLocation(double realLat, double realLng, Random rng) {
-    // Convert meters to degrees (approximate)
-    // 1 degree latitude ≈ 111km
-    // At Sydney's latitude (-33.87°), 1 degree longitude ≈ 93km
-    
-    final offsetDistance = 100.0 + rng.nextDouble() * 100.0; // 100-200 meters
-    final angle = rng.nextDouble() * 2 * pi; // Random direction
-    
-    final latOffset = (offsetDistance / 111000.0) * cos(angle);
-    final lngOffset = (offsetDistance / 93000.0) * sin(angle);
-    
-    return {
-      'lat': realLat + latOffset,
-      'lng': realLng + lngOffset,
-    };
-  }
-
   LatLng _randomLandPoint(Random rng) {
     const landBoxes = [
       [-33.903, -33.865, 151.195, 151.235],
@@ -811,18 +780,11 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   List<IceUser> _buildUsers() {
-    final rng = Random(42); // Use seed for consistency for spoofed locations
-    
-    const realLat = -33.8688;
-    const realLng = 151.2093;
-    
     const me = IceUser(
       id: 0,
       name: 'Username (You)',
-      lat: realLat,
-      lng: realLng,
-      realLat: realLat,
-      realLng: realLng,
+      lat: -33.8688,
+      lng: 151.2093,
       interests: ['AI', 'Clubbing', 'Tech'],
       spark: 75,
       statusType: StatusType.open,
@@ -830,176 +792,135 @@ class _MapScreenState extends State<MapScreen> {
       age: 26,
       gender: 'Male',
       me: true,
-      willAcceptMeet: true,
     );
 
     final base = <IceUser>[
       me,
-      // Sophie - will ACCEPT meet request
-      IceUser(
+      const IceUser(
         id: 1,
         name: 'Sophie',
-        realLat: -33.8731,
-        realLng: 151.2060,
-        lat: -33.8731 + 0.0015, // Spoofed ~165m away
-        lng: 151.2060 - 0.0012,
+        lat: -33.8731,
+        lng: 151.2060,
         interests: ['Yoga', 'Travel'],
         spark: 31,
         statusType: StatusType.open,
         bio: 'Always up for coffee & deep chats!',
         age: 24,
         gender: 'Female',
-        willAcceptMeet: true, // Will accept
       ),
-      // Liam - will DECLINE meet request
-      IceUser(
+      const IceUser(
         id: 2,
         name: 'Liam',
-        realLat: -33.8680,
-        realLng: 151.2200,
-        lat: -33.8680 - 0.0018, // Spoofed ~200m away
-        lng: 151.2200 + 0.0010,
+        lat: -33.8680,
+        lng: 151.2200,
         interests: ['EDM', 'Techno'],
         spark: 12,
         statusType: StatusType.shy,
         bio: 'Love dancing. Ask me for a playlist!',
         age: 27,
         gender: 'Male',
-        willAcceptMeet: false, // Will decline
       ),
-      // Ava - will ACCEPT meet request
-      IceUser(
+      const IceUser(
         id: 3,
         name: 'Ava',
-        realLat: -33.8615,
-        realLng: 151.2100,
-        lat: -33.8615 + 0.0011, // Spoofed ~122m away
-        lng: 151.2100 + 0.0013,
+        lat: -33.8615,
+        lng: 151.2100,
         interests: ['Art', 'Clubbing'],
         spark: 43,
         statusType: StatusType.curious,
         bio: 'Catch me at Oxford Art Factory!',
         age: 23,
         gender: 'Female',
-        willAcceptMeet: true, // Will accept
       ),
-      // Jayden - will DECLINE meet request
-      IceUser(
+      const IceUser(
         id: 4,
         name: 'Jayden',
-        realLat: -33.8708,
-        realLng: 151.2000,
-        lat: -33.8708 - 0.0014, // Spoofed ~155m away
-        lng: 151.2000 - 0.0016,
+        lat: -33.8708,
+        lng: 151.2000,
         interests: ['Gaming', 'Anime'],
         spark: 56,
         statusType: StatusType.busy,
         bio: 'Manga, games, and memes.',
         age: 28,
         gender: 'Male',
-        willAcceptMeet: false, // Will decline
       ),
 
-      // ✅ 6 EXTRA users within ~1km of Username
-      // Maya - will ACCEPT
-      IceUser(
+      // âœ… 6 EXTRA users within ~1km of Username
+      const IceUser(
         id: 5,
         name: 'Maya',
-        realLat: -33.8679,
-        realLng: 151.2131,
-        lat: -33.8679 + 0.0009,
-        lng: 151.2131 - 0.0014,
+        lat: -33.8679,
+        lng: 151.2131,
         interests: ['Coffee', 'Markets'],
         spark: 44,
         statusType: StatusType.open,
         bio: "Down for a quick hello 👋",
         age: 25,
         gender: 'Female',
-        willAcceptMeet: true,
       ),
-      // Ethan - will ACCEPT
-      IceUser(
+      const IceUser(
         id: 6,
         name: 'Ethan',
-        realLat: -33.8702,
-        realLng: 151.2110,
-        lat: -33.8702 - 0.0017,
-        lng: 151.2110 + 0.0008,
+        lat: -33.8702,
+        lng: 151.2110,
         interests: ['Tech', 'Comedy'],
         spark: 52,
         statusType: StatusType.curious,
         bio: "New to the area 👋 wave at me!",
         age: 29,
         gender: 'Male',
-        willAcceptMeet: true,
       ),
-      // Zara - will DECLINE
-      IceUser(
+      const IceUser(
         id: 7,
         name: 'Zara',
-        realLat: -33.8682,
-        realLng: 151.2069,
-        lat: -33.8682 + 0.0012,
-        lng: 151.2069 + 0.0015,
+        lat: -33.8682,
+        lng: 151.2069,
         interests: ['Photography', 'Travel'],
         spark: 36,
         statusType: StatusType.shy,
         bio: "I'm shy but friendly 🙂",
         age: 22,
         gender: 'Female',
-        willAcceptMeet: false,
       ),
-      // Noah - will ACCEPT
-      IceUser(
+      const IceUser(
         id: 8,
         name: 'Noah',
-        realLat: -33.8669,
-        realLng: 151.2099,
-        lat: -33.8669 - 0.0010,
-        lng: 151.2099 - 0.0013,
+        lat: -33.8669,
+        lng: 151.2099,
         interests: ['EDM', 'Dance'],
         spark: 61,
         statusType: StatusType.open,
         bio: "Music lover. Wave if you like EDM!",
         age: 26,
         gender: 'Male',
-        willAcceptMeet: true,
       ),
-      // Kai - will DECLINE
-      IceUser(
+      const IceUser(
         id: 9,
         name: 'Kai',
-        realLat: -33.8695,
-        realLng: 151.2144,
-        lat: -33.8695 + 0.0016,
-        lng: 151.2144 - 0.0011,
+        lat: -33.8695,
+        lng: 151.2144,
         interests: ['Fitness', 'Beach'],
         spark: 28,
         statusType: StatusType.busy,
         bio: "Busy today but open to a quick wave.",
         age: 30,
         gender: 'Non-binary',
-        willAcceptMeet: false,
       ),
-      // Priya - will ACCEPT
-      IceUser(
+      const IceUser(
         id: 10,
         name: 'Priya',
-        realLat: -33.8711,
-        realLng: 151.2086,
-        lat: -33.8711 - 0.0013,
-        lng: 151.2086 + 0.0009,
+        lat: -33.8711,
+        lng: 151.2086,
         interests: ['Food', 'Movies'],
         spark: 47,
         statusType: StatusType.curious,
         bio: "Tell me your fave movie 🎬",
         age: 27,
         gender: 'Female',
-        willAcceptMeet: true,
       ),
     ];
 
-    // Names list for random users
+    final rng = Random(7);
     final names = [
       "Ella", "Noah", "Grace", "Mason", "Ruby", "Jack", "Chloe", "Lucas", "Harper", "Zoe", "Oscar", "Mia",
       "Olivia", "Hugo", "Matilda", "Archie", "Willow", "Max", "Hazel", "Charlie", "Maddie", "Ethan",
@@ -1019,29 +940,24 @@ class _MapScreenState extends State<MapScreen> {
     int nextId = 11;
     while (base.length < 60) {
       final n = names[rng.nextInt(names.length)];
-      final realPos = _randomLandPoint(rng);
-      final spoofed = _createSpoofedLocation(realPos.latitude, realPos.longitude, rng);
+      final pos = _randomLandPoint(rng);
       final i1 = interestsPool[rng.nextInt(interestsPool.length)];
       final i2 = interestsPool[rng.nextInt(interestsPool.length)];
       final age = 18 + rng.nextInt(43);
       final gender = gendersPool[rng.nextInt(gendersPool.length)];
-      final willAccept = rng.nextBool(); // Random 50/50 chance
 
       base.add(
         IceUser(
           id: nextId++,
           name: n,
-          lat: spoofed['lat']!,
-          lng: spoofed['lng']!,
-          realLat: realPos.latitude,
-          realLng: realPos.longitude,
+          lat: pos.latitude,
+          lng: pos.longitude,
           interests: {i1, i2}.toList(),
           spark: 10 + rng.nextInt(70),
           statusType: randStatus(),
           bio: "Wave 👋 to connect",
           age: age,
           gender: gender,
-          willAcceptMeet: willAccept,
         ),
       );
     }
@@ -1139,7 +1055,7 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  // ✅ Build custom avatar markers
+  // âœ… Build custom avatar markers
   Future<void> _buildMarkers() async {
     _markers.clear();
 
@@ -1154,13 +1070,10 @@ class _MapScreenState extends State<MapScreen> {
         isMe: u.me,
       );
 
-      // Use real location if they've shared it, otherwise use spoofed location
-      final position = (_locationShared[u.id] == true) ? u.realPos : u.pos;
-
       _markers.add(
         Marker(
           markerId: MarkerId('u_${u.id}'),
-          position: position,
+          position: u.pos,
           icon: icon,
           onTap: () => _setSelectedUser(u.me ? null : u),
           anchor: const Offset(0.5, 0.5), // center anchor for circular marker
@@ -1312,43 +1225,25 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _openDirections(IceUser u) async {
-    if (u.me) return;
-
-    // Check if we already sent a meet request
-    if (_meetRequestSent[u.id] == true) {
-      if (_locationShared[u.id] == true) {
-        // They accepted - open directions to REAL location
-        _openMapDirections(u);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Waiting for ${u.name} to respond to your meet request..."),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-      return;
-    }
-
-    // Show confirmation dialog to send meet request
+    // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           title: const Text(
-            'Send Meet Request?',
+            'Meet Up?',
             style: TextStyle(fontWeight: FontWeight.w800),
           ),
           content: Text(
-            'Send a meet request to ${u.name}? They can choose to share their exact location with you.',
+            'Are you sure you want to get directions to meet ${u.name}?',
             style: const TextStyle(fontSize: 15),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text(
-                'Cancel',
+                'No',
                 style: TextStyle(
                   color: Color(0xFF6B7280),
                   fontWeight: FontWeight.w700,
@@ -1363,7 +1258,7 @@ class _MapScreenState extends State<MapScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text(
-                'Send Request',
+                'Yes',
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
@@ -1372,74 +1267,26 @@ class _MapScreenState extends State<MapScreen> {
       },
     );
 
+    // If user confirmed, open the map
     if (confirmed == true) {
-      setState(() => _meetRequestSent[u.id] = true);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Meet request sent to ${u.name} 📍"),
-          duration: const Duration(seconds: 2),
-        ),
+      final me = _me;
+
+      final url = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1'
+            '&origin=${me.lat},${me.lng}'
+            '&destination=${u.lat},${u.lng}'
+            '&travelmode=walking',
       );
 
-      // Simulate response after 2 seconds
-      Future.delayed(const Duration(seconds: 2), () {
-        if (!mounted) return;
-        if (_blockedIds.contains(u.id)) return;
-
-        final accepted = u.willAcceptMeet;
-
-        if (accepted) {
-          setState(() => _locationShared[u.id] = true);
-          
-          // Rebuild markers to show real location
-          _rebuildMarkersSafely();
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("${u.name} shared their location! 📍 Tap Meet again for directions."),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("${u.name} decided to pass this time 🤷"),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+      try {
+        final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
+        if (!ok && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Could not open Maps")));
         }
-      });
-    }
-  }
-
-  // Open Google Maps with directions to the user
-  Future<void> _openMapDirections(IceUser u) async {
-    final me = _me;
-    
-    // Use real location if shared, otherwise spoofed
-    final targetLat = (_locationShared[u.id] == true) ? u.realLat : u.lat;
-    final targetLng = (_locationShared[u.id] == true) ? u.realLng : u.lng;
-
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1'
-          '&origin=${me.lat},${me.lng}'
-          '&destination=$targetLat,$targetLng'
-          '&travelmode=walking',
-    );
-
-    try {
-      final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
-      if (!ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Could not open Maps")),
-        );
+      } catch (_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Could not open Maps")));
       }
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Could not open Maps")),
-      );
     }
   }
 

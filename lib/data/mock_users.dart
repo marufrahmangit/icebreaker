@@ -1,81 +1,254 @@
+import 'dart:math';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/ice_user.dart';
 
-/// 60 simulated users based on the HTML prototypes, centered around Sydney.
-/// Marker color is derived from [statusType]. Username is the 'me' user.
-const myLat = -33.8688;
-const myLng = 151.2093;
+/* ============================================================
+   MOCK USER DATA BUILDER
+   60 simulated users centered around Sydney.
+   - lat/lng represent the user's real location.
+   - No spoofed locations; just actual coordinates.
+   ============================================================ */
 
-const List<IceUser> kMockUsers = [
-  IceUser(
-    id: 0,
-    name: 'Username (You)',
-    lat: myLat,
-    lng: myLng,
-    interests: ['AI', 'Clubbing', 'Tech'],
-    sparkPoints: 75,
-    statusType: StatusType.open,
-    bio: 'Let’s make new connections in Sydney!',
-    isMe: true,
-  ),
-  IceUser(id: 1, name: 'Sophie', lat: -33.8731, lng: 151.2060, interests: ['Yoga', 'Travel'], sparkPoints: 31, statusType: StatusType.open, bio: 'Always up for coffee & deep chats!', isMe: false),
-  IceUser(id: 2, name: 'Liam', lat: -33.8680, lng: 151.2200, interests: ['EDM', 'Techno'], sparkPoints: 12, statusType: StatusType.shy, bio: 'Love dancing. Ask me for a playlist!', isMe: false),
-  IceUser(id: 3, name: 'Ava', lat: -33.8615, lng: 151.2100, interests: ['Art', 'Clubbing'], sparkPoints: 43, statusType: StatusType.curious, bio: 'Catch me at Oxford Art Factory!', isMe: false),
-  IceUser(id: 4, name: 'Jayden', lat: -33.8708, lng: 151.2000, interests: ['Gaming', 'Anime'], sparkPoints: 56, statusType: StatusType.busy, bio: 'Manga, games, and memes.', isMe: false),
-  IceUser(id: 5, name: 'Ella', lat: -33.8698, lng: 151.2120, interests: ['Photography', 'Food'], sparkPoints: 67, statusType: StatusType.open, bio: 'Foodie and photo addict!', isMe: false),
-  IceUser(id: 6, name: 'Noah', lat: -33.8667, lng: 151.2162, interests: ['Fitness', 'Outdoors'], sparkPoints: 21, statusType: StatusType.curious, bio: 'Let’s go for a run!', isMe: false),
-  IceUser(id: 7, name: 'Grace', lat: -33.8701, lng: 151.2141, interests: ['Reading', 'Writing'], sparkPoints: 45, statusType: StatusType.shy, bio: 'Tell me your favourite book!', isMe: false),
-  IceUser(id: 8, name: 'Mason', lat: -33.8622, lng: 151.2135, interests: ['Surfing', 'Movies'], sparkPoints: 34, statusType: StatusType.open, bio: 'Bondi regular 🌊', isMe: false),
-  IceUser(id: 9, name: 'Ruby', lat: -33.8675, lng: 151.2150, interests: ['Music', 'EDM'], sparkPoints: 29, statusType: StatusType.curious, bio: 'Love to dance and vibe!', isMe: false),
-  IceUser(id: 10, name: 'Jack', lat: -33.8645, lng: 151.2180, interests: ['Sports', 'AFL'], sparkPoints: 17, statusType: StatusType.busy, bio: 'Go Swans!', isMe: false),
-  IceUser(id: 11, name: 'Chloe', lat: -33.8712, lng: 151.2112, interests: ['Karaoke', 'Makeup'], sparkPoints: 55, statusType: StatusType.open, bio: 'Sing with me?', isMe: false),
-  IceUser(id: 12, name: 'Lucas', lat: -33.8651, lng: 151.2168, interests: ['History', 'Wine'], sparkPoints: 39, statusType: StatusType.curious, bio: 'Old soul in a new city.', isMe: false),
-  IceUser(id: 13, name: 'Harper', lat: -33.8726, lng: 151.2132, interests: ['Coffee', 'Markets'], sparkPoints: 18, statusType: StatusType.open, bio: 'Find me at Glebe Market!', isMe: false),
-  IceUser(id: 14, name: 'Leo', lat: -33.8690, lng: 151.2210, interests: ['Cycling', 'Coffee'], sparkPoints: 23, statusType: StatusType.shy, bio: 'Cyclist, caffeine lover.', isMe: false),
-  IceUser(id: 15, name: 'Zoe', lat: -33.8670, lng: 151.2240, interests: ['Dogs', 'Travel'], sparkPoints: 41, statusType: StatusType.open, bio: 'Ask about my rescue dog!', isMe: false),
-  IceUser(id: 16, name: 'Oscar', lat: -33.8706, lng: 151.2195, interests: ['Coding', 'Tech'], sparkPoints: 35, statusType: StatusType.busy, bio: 'Always up for hackathons.', isMe: false),
-  IceUser(id: 17, name: 'Isabella', lat: -33.8720, lng: 151.2085, interests: ['Meditation', 'Yoga'], sparkPoints: 58, statusType: StatusType.curious, bio: 'Let’s chill and meditate.', isMe: false),
-  IceUser(id: 18, name: 'Henry', lat: -33.8681, lng: 151.2075, interests: ['Chess', 'Board Games'], sparkPoints: 13, statusType: StatusType.open, bio: 'Your move?', isMe: false),
-  IceUser(id: 19, name: 'Mia', lat: -33.8718, lng: 151.2052, interests: ['Fashion', 'Design'], sparkPoints: 62, statusType: StatusType.open, bio: 'Let’s style up Sydney!', isMe: false),
-  IceUser(id: 20, name: 'Olivia', lat: -33.8587, lng: 151.2140, interests: ['Running', 'Yoga'], sparkPoints: 39, statusType: StatusType.shy, bio: 'Love morning runs in Pyrmont!', isMe: false),
-  IceUser(id: 21, name: 'Hugo', lat: -33.8729, lng: 151.1987, interests: ['Fishing', 'Boating'], sparkPoints: 24, statusType: StatusType.curious, bio: 'Let’s go out on the harbour.', isMe: false),
-  IceUser(id: 22, name: 'Sienna', lat: -33.8121, lng: 151.0031, interests: ['Food', 'Gardening'], sparkPoints: 51, statusType: StatusType.shy, bio: 'Home cook in Parramatta.', isMe: false),
-  IceUser(id: 23, name: 'Louis', lat: -33.9510, lng: 151.2350, interests: ['Beach', 'Cricket'], sparkPoints: 29, statusType: StatusType.busy, bio: 'Bondi or bust!', isMe: false),
-  IceUser(id: 24, name: 'Matilda', lat: -33.8837, lng: 151.2009, interests: ['Markets', 'Poetry'], sparkPoints: 44, statusType: StatusType.open, bio: 'Poet at Newtown Market.', isMe: false),
-  IceUser(id: 25, name: 'Archie', lat: -33.8600, lng: 151.2099, interests: ['Photography', 'Nature'], sparkPoints: 21, statusType: StatusType.curious, bio: 'Let’s explore Hyde Park.', isMe: false),
-  IceUser(id: 26, name: 'Willow', lat: -33.9610, lng: 151.1500, interests: ['Dogs', 'Volunteering'], sparkPoints: 49, statusType: StatusType.open, bio: 'Find me at the shelter.', isMe: false),
-  IceUser(id: 27, name: 'Max', lat: -33.8890, lng: 151.1870, interests: ['Cycling', 'EDM'], sparkPoints: 35, statusType: StatusType.shy, bio: 'Rides & raves in Glebe.', isMe: false),
-  IceUser(id: 28, name: 'Hazel', lat: -33.9410, lng: 151.2560, interests: ['Surfing', 'Art'], sparkPoints: 41, statusType: StatusType.curious, bio: 'Let’s paint by the sea.', isMe: false),
-  IceUser(id: 29, name: 'Charlie', lat: -33.8570, lng: 151.2050, interests: ['Gaming', 'Comics'], sparkPoints: 50, statusType: StatusType.busy, bio: 'Comic fan in Barangaroo.', isMe: false),
+const double kMeLat = -33.8688;
+const double kMeLng = 151.2093;
 
-  // Extra users to reach 60 (suburb spread)
-  IceUser(id: 30, name: 'Maddie', lat: -33.8160, lng: 151.0040, interests: ['EDM', 'Yoga'], sparkPoints: 64, statusType: StatusType.open, bio: 'Coffee and live music junkie.', isMe: false),
-  IceUser(id: 31, name: 'Ethan', lat: -33.8890, lng: 151.2750, interests: ['Fitness', 'Music'], sparkPoints: 43, statusType: StatusType.shy, bio: 'Let’s rave or relax.', isMe: false),
-  IceUser(id: 32, name: 'Jasmine', lat: -33.7970, lng: 151.1840, interests: ['Food', 'Photography'], sparkPoints: 67, statusType: StatusType.curious, bio: 'Seeking good vibes.', isMe: false),
-  IceUser(id: 33, name: 'Carter', lat: -33.8980, lng: 151.1790, interests: ['Markets', 'Movies'], sparkPoints: 38, statusType: StatusType.busy, bio: 'Love Sydney sunsets.', isMe: false),
-  IceUser(id: 34, name: 'Aaliyah', lat: -33.8000, lng: 151.2870, interests: ['Cycling', 'Art'], sparkPoints: 55, statusType: StatusType.open, bio: 'Always up for food adventures!', isMe: false),
-  IceUser(id: 35, name: 'Flynn', lat: -33.9250, lng: 151.1880, interests: ['Tech', 'Outdoors'], sparkPoints: 41, statusType: StatusType.shy, bio: 'Markets then brunch?', isMe: false),
-  IceUser(id: 36, name: 'Poppy', lat: -33.8760, lng: 151.1040, interests: ['Running', 'Beach'], sparkPoints: 32, statusType: StatusType.curious, bio: 'Just moved to town.', isMe: false),
-  IceUser(id: 37, name: 'Zac', lat: -33.8720, lng: 151.0950, interests: ['Gaming', 'Anime'], sparkPoints: 26, statusType: StatusType.busy, bio: 'Long walks and chats.', isMe: false),
-  IceUser(id: 38, name: 'Georgia', lat: -33.8890, lng: 151.1260, interests: ['Travel', 'Nature'], sparkPoints: 45, statusType: StatusType.open, bio: 'Let’s be spontaneous!', isMe: false),
-  IceUser(id: 39, name: 'Blake', lat: -33.8850, lng: 151.2140, interests: ['Comedy', 'Dance'], sparkPoints: 51, statusType: StatusType.shy, bio: 'Sydney born and raised.', isMe: false),
-  IceUser(id: 40, name: 'Hannah', lat: -33.9220, lng: 151.2260, interests: ['EDM', 'Yoga'], sparkPoints: 49, statusType: StatusType.curious, bio: 'Festival buddy needed!', isMe: false),
-  IceUser(id: 41, name: 'Aiden', lat: -33.9200, lng: 151.2570, interests: ['Fitness', 'Music'], sparkPoints: 25, statusType: StatusType.busy, bio: 'Social but chill.', isMe: false),
-  IceUser(id: 42, name: 'Summer', lat: -33.9500, lng: 151.2350, interests: ['Food', 'Photography'], sparkPoints: 62, statusType: StatusType.open, bio: 'Introvert learning to party.', isMe: false),
-  IceUser(id: 43, name: 'Luca', lat: -33.9150, lng: 151.2420, interests: ['Markets', 'Movies'], sparkPoints: 68, statusType: StatusType.shy, bio: 'Sun, sand, and friends.', isMe: false),
-  IceUser(id: 44, name: 'Evie', lat: -33.8910, lng: 151.2030, interests: ['Cycling', 'Art'], sparkPoints: 33, statusType: StatusType.curious, bio: 'Chill, dance, repeat.', isMe: false),
-  IceUser(id: 45, name: 'Jordan', lat: -33.8820, lng: 151.1860, interests: ['Tech', 'Outdoors'], sparkPoints: 48, statusType: StatusType.busy, bio: 'DJ in training.', isMe: false),
-  IceUser(id: 46, name: 'Paige', lat: -33.8850, lng: 151.1580, interests: ['Running', 'Beach'], sparkPoints: 46, statusType: StatusType.open, bio: 'Brunch is life.', isMe: false),
-  IceUser(id: 47, name: 'Cooper', lat: -33.8680, lng: 151.2660, interests: ['Gaming', 'Anime'], sparkPoints: 59, statusType: StatusType.shy, bio: 'Making new mates.', isMe: false),
-  IceUser(id: 48, name: 'Aria', lat: -33.8410, lng: 151.2390, interests: ['Travel', 'Nature'], sparkPoints: 31, statusType: StatusType.curious, bio: 'Bookworm & bouncer.', isMe: false),
-  IceUser(id: 49, name: 'Xavier', lat: -33.8310, lng: 151.2060, interests: ['Comedy', 'Dance'], sparkPoints: 19, statusType: StatusType.busy, bio: 'Spontaneous hangouts?', isMe: false),
-  IceUser(id: 50, name: 'Layla', lat: -33.8580, lng: 151.1800, interests: ['EDM', 'Yoga'], sparkPoints: 24, statusType: StatusType.open, bio: 'Proud dog parent.', isMe: false),
-  IceUser(id: 51, name: 'Felix', lat: -34.0520, lng: 151.1520, interests: ['Fitness', 'Music'], sparkPoints: 52, statusType: StatusType.shy, bio: 'EDM always!', isMe: false),
-  IceUser(id: 52, name: 'Lily', lat: -33.9170, lng: 151.0320, interests: ['Food', 'Photography'], sparkPoints: 47, statusType: StatusType.curious, bio: 'Here for new friends.', isMe: false),
-  IceUser(id: 53, name: 'Harrison', lat: -33.9180, lng: 150.9270, interests: ['Markets', 'Movies'], sparkPoints: 21, statusType: StatusType.busy, bio: 'Hiking weekends.', isMe: false),
-  IceUser(id: 54, name: 'Eliza', lat: -33.8940, lng: 150.9380, interests: ['Cycling', 'Art'], sparkPoints: 38, statusType: StatusType.open, bio: 'Just say hi!', isMe: false),
-  IceUser(id: 55, name: 'Jake', lat: -33.7700, lng: 150.9050, interests: ['Tech', 'Outdoors'], sparkPoints: 67, statusType: StatusType.shy, bio: 'Long walks and chats.', isMe: false),
-  IceUser(id: 56, name: 'Sienna', lat: -33.7510, lng: 150.6940, interests: ['Running', 'Beach'], sparkPoints: 30, statusType: StatusType.curious, bio: 'Love Sydney sunsets.', isMe: false),
-  IceUser(id: 57, name: 'Joel', lat: -33.8720, lng: 150.9580, interests: ['Gaming', 'Anime'], sparkPoints: 60, statusType: StatusType.busy, bio: 'Foodie and photo addict!', isMe: false),
-  IceUser(id: 58, name: 'Ava-Rose', lat: -33.8790, lng: 151.1960, interests: ['Travel', 'Nature'], sparkPoints: 33, statusType: StatusType.open, bio: 'Just moved to town.', isMe: false),
-  IceUser(id: 59, name: 'Leo', lat: -33.8830, lng: 151.2310, interests: ['Comedy', 'Dance'], sparkPoints: 69, statusType: StatusType.shy, bio: 'Introvert learning to party.', isMe: false),
-];
+const IceUser kMeUser = IceUser(
+  id: 0,
+  name: 'Username (You)',
+  lat: kMeLat,
+  lng: kMeLng,
+  interests: ['AI', 'Clubbing', 'Tech'],
+  // spark: 75,  // Spark points – commented out
+  statusType: StatusType.open,
+  bio: "Let's make new connections in Sydney!",
+  age: 26,
+  gender: 'Male',
+  me: true,
+  willAcceptMeet: true,
+);
+
+/// Builds a list of 60 users including the "me" user.
+List<IceUser> buildMockUsers() {
+  final rng = Random(42);
+
+  final base = <IceUser>[
+    kMeUser,
+
+    // Sophie – will ACCEPT meet request
+    const IceUser(
+      id: 1,
+      name: 'Sophie',
+      lat: -33.8731,
+      lng: 151.2060,
+      interests: ['Yoga', 'Travel'],
+      // spark: 31,
+      statusType: StatusType.open,
+      bio: 'Always up for coffee & deep chats!',
+      age: 24,
+      gender: 'Female',
+      willAcceptMeet: true,
+    ),
+
+    // Liam – will DECLINE meet request
+    const IceUser(
+      id: 2,
+      name: 'Liam',
+      lat: -33.8680,
+      lng: 151.2200,
+      interests: ['EDM', 'Techno'],
+      // spark: 12,
+      statusType: StatusType.shy,
+      bio: 'Love dancing. Ask me for a playlist!',
+      age: 27,
+      gender: 'Male',
+      willAcceptMeet: false,
+    ),
+
+    // Ava – will ACCEPT
+    const IceUser(
+      id: 3,
+      name: 'Ava',
+      lat: -33.8615,
+      lng: 151.2100,
+      interests: ['Art', 'Clubbing'],
+      // spark: 43,
+      statusType: StatusType.curious,
+      bio: 'Catch me at Oxford Art Factory!',
+      age: 23,
+      gender: 'Female',
+      willAcceptMeet: true,
+    ),
+
+    // Jayden – will DECLINE
+    const IceUser(
+      id: 4,
+      name: 'Jayden',
+      lat: -33.8708,
+      lng: 151.2000,
+      interests: ['Gaming', 'Anime'],
+      // spark: 56,
+      statusType: StatusType.busy,
+      bio: 'Manga, games, and memes.',
+      age: 28,
+      gender: 'Male',
+      willAcceptMeet: false,
+    ),
+
+    // Maya – will ACCEPT
+    const IceUser(
+      id: 5,
+      name: 'Maya',
+      lat: -33.8679,
+      lng: 151.2131,
+      interests: ['Coffee', 'Markets'],
+      // spark: 44,
+      statusType: StatusType.open,
+      bio: "Down for a quick hello 👋",
+      age: 25,
+      gender: 'Female',
+      willAcceptMeet: true,
+    ),
+
+    // Ethan – will ACCEPT
+    const IceUser(
+      id: 6,
+      name: 'Ethan',
+      lat: -33.8702,
+      lng: 151.2110,
+      interests: ['Tech', 'Comedy'],
+      // spark: 52,
+      statusType: StatusType.curious,
+      bio: "New to the area 👋 wave at me!",
+      age: 29,
+      gender: 'Male',
+      willAcceptMeet: true,
+    ),
+
+    // Zara – will DECLINE
+    const IceUser(
+      id: 7,
+      name: 'Zara',
+      lat: -33.8682,
+      lng: 151.2069,
+      interests: ['Photography', 'Travel'],
+      // spark: 36,
+      statusType: StatusType.shy,
+      bio: "I'm shy but friendly 🙂",
+      age: 22,
+      gender: 'Female',
+      willAcceptMeet: false,
+    ),
+
+    // Noah – will ACCEPT
+    const IceUser(
+      id: 8,
+      name: 'Noah',
+      lat: -33.8669,
+      lng: 151.2099,
+      interests: ['EDM', 'Dance'],
+      // spark: 61,
+      statusType: StatusType.open,
+      bio: "Music lover. Wave if you like EDM!",
+      age: 26,
+      gender: 'Male',
+      willAcceptMeet: true,
+    ),
+
+    // Kai – will DECLINE
+    const IceUser(
+      id: 9,
+      name: 'Kai',
+      lat: -33.8695,
+      lng: 151.2144,
+      interests: ['Fitness', 'Beach'],
+      // spark: 28,
+      statusType: StatusType.busy,
+      bio: "Busy today but open to a quick wave.",
+      age: 30,
+      gender: 'Non-binary',
+      willAcceptMeet: false,
+    ),
+
+    // Priya – will ACCEPT
+    const IceUser(
+      id: 10,
+      name: 'Priya',
+      lat: -33.8711,
+      lng: 151.2086,
+      interests: ['Food', 'Movies'],
+      // spark: 47,
+      statusType: StatusType.curious,
+      bio: "Tell me your fave movie 🎬",
+      age: 27,
+      gender: 'Female',
+      willAcceptMeet: true,
+    ),
+  ];
+
+  // ── Name / interest / gender pools for random fill ──
+
+  final names = [
+    "Ella", "Noah", "Grace", "Mason", "Ruby", "Jack", "Chloe", "Lucas",
+    "Harper", "Zoe", "Oscar", "Mia", "Olivia", "Hugo", "Matilda", "Archie",
+    "Willow", "Max", "Hazel", "Charlie", "Maddie", "Ethan", "Jasmine",
+    "Carter", "Aaliyah", "Flynn", "Poppy", "Zac", "Georgia", "Blake",
+    "Hannah", "Aiden", "Summer", "Luca", "Evie", "Jordan", "Paige",
+    "Cooper", "Aria", "Xavier", "Layla", "Felix", "Lily", "Harrison",
+    "Eliza", "Jake", "Joel", "Ava-Rose", "Theo", "Ivy",
+  ];
+
+  final interestsPool = [
+    "Food", "Photography", "Movies", "Markets", "Running", "Beach",
+    "Comedy", "Dance", "Tech", "Outdoors", "Yoga", "Travel", "EDM",
+    "Gaming", "Anime", "Art", "Coffee", "Fitness",
+  ];
+
+  final gendersPool = ["Male", "Female", "Non-binary"];
+
+  StatusType randStatus() => StatusType.values[rng.nextInt(StatusType.values.length)];
+
+  int nextId = 11;
+  while (base.length < 60) {
+    final n = names[rng.nextInt(names.length)];
+    final realPos = _randomLandPoint(rng);
+    final i1 = interestsPool[rng.nextInt(interestsPool.length)];
+    final i2 = interestsPool[rng.nextInt(interestsPool.length)];
+    final age = 18 + rng.nextInt(43);
+    final gender = gendersPool[rng.nextInt(gendersPool.length)];
+    final willAccept = rng.nextBool();
+
+    base.add(
+      IceUser(
+        id: nextId++,
+        name: n,
+        lat: realPos.latitude,
+        lng: realPos.longitude,
+        interests: {i1, i2}.toList(),
+        // spark: 10 + rng.nextInt(70), // Spark points – commented out
+        statusType: randStatus(),
+        bio: "Wave 👋 to connect",
+        age: age,
+        gender: gender,
+        willAcceptMeet: willAccept,
+      ),
+    );
+  }
+
+  return base;
+}
+
+/// Generate a random LatLng within land areas around Sydney.
+LatLng _randomLandPoint(Random rng) {
+  const landBoxes = [
+    [-33.903, -33.865, 151.195, 151.235],
+    [-33.930, -33.870, 151.115, 151.185],
+    [-33.945, -33.885, 151.215, 151.275],
+    [-33.840, -33.780, 151.145, 151.220],
+    [-33.980, -33.920, 151.135, 151.220],
+  ];
+
+  final box = landBoxes[rng.nextInt(landBoxes.length)];
+  final lat = box[0] + rng.nextDouble() * (box[1] - box[0]);
+  final lng = box[2] + rng.nextDouble() * (box[3] - box[2]);
+  return LatLng(lat, lng);
+}

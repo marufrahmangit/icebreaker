@@ -12,7 +12,7 @@ class AppState extends ChangeNotifier {
   static const _kPrefsSelectedUser = 'selectedUser';
   static const _kPrefsLastChatDraft = 'lastChatDraft';
 
-  final List<IceUser> users = List<IceUser>.from(kMockUsers);
+  final List<IceUser> users = List<IceUser>.from(MockUsers);
 
   bool started = false;
   IceUser? selected;

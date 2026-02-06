@@ -17,12 +17,12 @@ Color statusColor(StatusType t) {
 String statusLabel(StatusType t) {
   switch (t) {
     case StatusType.open:
-      return 'Open';
+      return "Open";
     case StatusType.shy:
-      return 'Shy';
+      return "Shy";
     case StatusType.curious:
-      return 'Curious';
+      return "Curious";
     case StatusType.busy:
-      return 'Busy';
+      return "Busy";
   }
 }

@@ -1,23 +1,22 @@
 import 'dart:math';
 
-/// Haversine distance in meters.
-double distanceMeters({
-  required double lat1,
-  required double lng1,
-  required double lat2,
-  required double lng2,
-}) {
-  double toRad(double x) => x * pi / 180.0;
-  const r = 6378137.0;
-  final dLat = toRad(lat2 - lat1);
-  final dLng = toRad(lng2 - lng1);
-  final a = sin(dLat / 2) * sin(dLat / 2) +
-      cos(toRad(lat1)) * cos(toRad(lat2)) * sin(dLng / 2) * sin(dLng / 2);
-  final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-  return r * c;
+/// Haversine distance in meters between two lat/lng points.
+double distanceMeters(double lat1, double lng1, double lat2, double lng2) {
+  const R = 6378137.0;
+  final dLat = _toRad(lat2 - lat1);
+  final dLng = _toRad(lng2 - lng1);
+  final a1 = _toRad(lat1);
+  final a2 = _toRad(lat2);
+
+  final sinLat = sin(dLat / 2);
+  final sinLng = sin(dLng / 2);
+  final h = sinLat * sinLat + cos(a1) * cos(a2) * sinLng * sinLng;
+  return 2 * R * atan2(sqrt(h), sqrt(1 - h));
 }
 
+double _toRad(double d) => d * pi / 180.0;
+
 String prettyDistance(double meters) {
-  if (meters < 1000) return '${meters.toStringAsFixed(0)} m';
-  return '~${(meters / 1000).toStringAsFixed(2)} km';
+  if (meters < 1000) return "${meters.toStringAsFixed(0)} m away";
+  return "~${(meters / 1000).toStringAsFixed(2)} km away";
 }

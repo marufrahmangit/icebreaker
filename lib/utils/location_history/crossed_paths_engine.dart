@@ -33,17 +33,10 @@ class CrossedPathsEngine {
   double _degreesToRadians(double degrees) => degrees * math.pi / 180.0;
 
   /// Detect all crossed paths for a given user against all other users
-  /// 
-  /// Algorithm:
-  /// 1. For each location sample from the target user
-  /// 2. Find all location samples from other users within the time window
-  /// 3. Calculate distance and check if within proximity radius
-  /// 4. Deduplicate and sort by timestamp
   List<CrossedPath> detectCrossedPaths({
     required int targetUserId,
     required List<LocationSample> allLocationSamples,
   }) {
-    // Separate target user's samples from others
     final targetSamples = allLocationSamples
         .where((sample) => sample.userId == targetUserId)
         .toList()
@@ -61,24 +54,19 @@ class CrossedPathsEngine {
     final crossedPaths = <CrossedPath>[];
     final processedPairs = <String>{};
 
-    // For each target location sample
     for (final targetSample in targetSamples) {
-      // Find other user samples within time window
       final candidateSamples = _getSamplesInTimeWindow(
         targetSample.timestamp,
         otherSamples,
       );
 
-      // Check proximity for each candidate
       for (final otherSample in candidateSamples) {
         final distance = calculateDistance(
           targetSample.position,
           otherSample.position,
         );
 
-        // If within proximity radius, record the crossed path
         if (distance <= config.proximityRadius) {
-          // Create unique key to avoid duplicates
           final pairKey = _createPairKey(
             targetUserId,
             otherSample.userId,
@@ -101,13 +89,10 @@ class CrossedPathsEngine {
       }
     }
 
-    // Sort by timestamp (most recent first)
     crossedPaths.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
     return crossedPaths;
   }
 
-  /// Get location samples within the time window of a reference timestamp
   List<LocationSample> _getSamplesInTimeWindow(
     DateTime referenceTime,
     List<LocationSample> samples,
@@ -121,22 +106,18 @@ class CrossedPathsEngine {
     }).toList();
   }
 
-  /// Create a unique key for a user pair at a specific time
-  /// This prevents duplicate entries for the same crossing event
   String _createPairKey(int userId1, int userId2, DateTime timestamp) {
     final sortedIds = [userId1, userId2]..sort();
-    final timeKey = timestamp.millisecondsSinceEpoch ~/ 60000; // Round to minute
+    final timeKey = timestamp.millisecondsSinceEpoch ~/ 60000;
     return '${sortedIds[0]}_${sortedIds[1]}_$timeKey';
   }
 
   /// Group crossed paths by user ID
   Map<int, List<CrossedPath>> groupByUser(List<CrossedPath> paths) {
     final grouped = <int, List<CrossedPath>>{};
-
     for (final path in paths) {
       grouped.putIfAbsent(path.otherUserId, () => []).add(path);
     }
-
     return grouped;
   }
 

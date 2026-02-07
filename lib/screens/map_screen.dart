@@ -76,6 +76,9 @@ class _MapScreenState extends State<MapScreen> {
   late final CrossedPathsEngine _pathsEngine;
   List<CrossedPath> _myCrossedPaths = [];
 
+  // ✅ NEW: Pre-computed crossed paths grouped by user for quick lookup
+  Map<int, List<CrossedPath>> _crossedPathsByUser = {};
+
   // Location sharing / visibility toggle
   late bool _locationSharingOn;
 
@@ -102,6 +105,9 @@ class _MapScreenState extends State<MapScreen> {
       allLocationSamples: _locationHistory,
     );
 
+    // ✅ NEW: Pre-group crossed paths by user ID for O(1) lookup
+    _crossedPathsByUser = _pathsEngine.groupByUser(_myCrossedPaths);
+
     // Build markers async
     Future.microtask(() async {
       await _buildMarkers();
@@ -112,6 +118,11 @@ class _MapScreenState extends State<MapScreen> {
   
 
   IceUser get _me => _users.firstWhere((u) => u.me);
+
+  // ✅ NEW: Get crossed paths count for a specific user
+  int _getCrossedPathsCount(int userId) {
+    return _crossedPathsByUser[userId]?.length ?? 0;
+  }
 
   List<LocationSample> _generateSimulatedHistory() {
     final simulator = LocationHistorySimulator();
@@ -620,7 +631,7 @@ class _MapScreenState extends State<MapScreen> {
               child: CrossedPathsButton(
                 count: _myCrossedPaths.isEmpty
                     ? 0
-                    : _pathsEngine.groupByUser(_myCrossedPaths).length,
+                    : _crossedPathsByUser.length,
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -712,6 +723,8 @@ class _MapScreenState extends State<MapScreen> {
                   waved: _waveSent[selected.id] == true,
                   chatUnlocked: _chatUnlocked(selected),
                   directionsUnlocked: _directionsUnlocked(selected),
+                  // ✅ NEW: Pass crossed paths count for this user
+                  crossedPathsCount: _getCrossedPathsCount(selected.id),
                   onClose: () => _setSelectedUser(null),
                   onWave: () => _waveAt(selected),
                   onChat: () => _openChat(selected),

@@ -49,6 +49,17 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    applicationVariants.all {
+        outputs.all {
+            val appName = "icebreaker_flutter"
+            val version = versionName
+            val buildNumber = versionCode
+            val buildTypeName = buildType.name
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+                "${appName}_v${version}_b${buildNumber}_${buildTypeName}.apk"
+        }
+    }
 }
 
 flutter {

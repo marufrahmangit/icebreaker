@@ -15,6 +15,9 @@ class UserPopupCard extends StatelessWidget {
   final bool chatUnlocked;
   final bool directionsUnlocked;
 
+  // ✅ NEW: Crossed paths info
+  final int crossedPathsCount;
+
   final VoidCallback onClose;
   final VoidCallback onWave;
   final VoidCallback onChat;
@@ -28,6 +31,7 @@ class UserPopupCard extends StatelessWidget {
     required this.waved,
     required this.chatUnlocked,
     required this.directionsUnlocked,
+    this.crossedPathsCount = 0,
     required this.onClose,
     required this.onWave,
     required this.onChat,
@@ -89,17 +93,54 @@ class UserPopupCard extends StatelessWidget {
                     ),
                   ],
                 ),
+
+                // ✅ NEW: Crossed paths banner
+                if (crossedPathsCount > 0) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8F4EED), Color(0xFF6A84F7)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF7C3AED).withOpacity(0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.route, color: Colors.white, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            crossedPathsCount == 1
+                                ? 'You crossed paths with ${user.name} once'
+                                : 'You crossed paths with ${user.name} $crossedPathsCount times',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 10),
                 Text(
                   user.interests.map((i) => "#$i").join(' '),
                   style: const TextStyle(color: Color(0xFF1688E8), fontSize: 13.5, fontWeight: FontWeight.w600),
                 ),
-                // const SizedBox(height: 6),
-                // Spark Points – commented out
-                // Text(
-                //   "Spark Points: ${user.spark}",
-                //   style: const TextStyle(color: Color(0xFFE6B800), fontSize: 13, fontWeight: FontWeight.w700),
-                // ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
